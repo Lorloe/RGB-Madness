@@ -7,14 +7,14 @@ public class GameManager : MonoBehaviour
     public bool IsInitialized { get; set; }
     public int CurrentScore { get; set; }
 
-    const string highScoreKey = "HighScore";
-    const string MainMenu = "MainMenu";
-    const string GamePlay = "GamePlay";
+    const string HIGH_SCORE_KEY = "HighScore";
+    const string MAIN_MENU = "MainMenu";
+    const string GAMEPLAY = "Gameplay";
 
     public int HighScore
     {
-        get { return PlayerPrefs.GetInt(highScoreKey, 0); }
-        set { PlayerPrefs.SetInt(highScoreKey, value); }
+        get { return PlayerPrefs.GetInt(HIGH_SCORE_KEY, 0); }
+        set { PlayerPrefs.SetInt(HIGH_SCORE_KEY, value); }
     }
 
     private void Init()
@@ -41,12 +41,12 @@ public class GameManager : MonoBehaviour
     public void GoToMainMenu()
     {
         // Load the main menu scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene(MainMenu);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(MAIN_MENU);
     }
 
     public void GoToGamePlay()
     {
         // Load the gameplay scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene(GamePlay);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(GAMEPLAY);
     }
 }
