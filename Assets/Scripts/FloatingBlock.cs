@@ -17,9 +17,10 @@ public class FloatingBlock : MonoBehaviour
     private void Awake() 
     {
         _hasGameFinished = false;
-        transform.position = _spawnPos[Random.Range(0, _spawnPos.Count)];
         int colorCount = GameplayManager.Instance.Colors.Count;
         ColorId = Random.Range(0, colorCount);
+        
+        transform.position = _spawnPos[Random.Range(0, _spawnPos.Count)];
 
         GetComponent<SpriteRenderer>().color = GameplayManager.Instance.Colors[ColorId];
     }
