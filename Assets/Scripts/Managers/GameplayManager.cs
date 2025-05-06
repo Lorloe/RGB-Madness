@@ -8,9 +8,13 @@ public class GameplayManager : MonoBehaviour
 {
     #region START
 
+    [SerializeField] private ColorList _colorList;
+    public List<Color> Colors => _colorList.Colors;
+
     private bool _hasGameFinished;
     public static GameplayManager Instance;
-    public List<Color> Colors;
+
+    // public List<Color> Colors;
 
     private void Awake()
     {

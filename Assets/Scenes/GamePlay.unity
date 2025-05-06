@@ -380,13 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9af4247db577b741b1779adda31db99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Colors:
-  - {r: 0.92549026, g: 0.5411765, b: 0.5137255, a: 1}
-  - {r: 1, g: 0.7176471, b: 0.37254903, a: 1}
-  - {r: 1, g: 0.9607844, b: 0.4156863, a: 1}
-  - {r: 0.3921569, g: 0.82745105, b: 0.5019608, a: 1}
-  - {r: 0.37254903, g: 0.5411765, b: 0.9333334, a: 1}
-  - {r: 0.63529414, g: 0.37254903, b: 0.6745098, a: 1}
+  _colorList: {fileID: 11400000, guid: 642d37dc8df6a4046b2bfdf6fbf67851, type: 2}
   _scoreText: {fileID: 1476606659}
   _pointClip: {fileID: 8300000, guid: 034ac7b2b2f1a6c4a914a63d4b59850e, type: 3}
   _spawnTime: 1
