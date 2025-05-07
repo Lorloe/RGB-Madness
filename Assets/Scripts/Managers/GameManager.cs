@@ -1,9 +1,7 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : Singleton<GameManager>
 {
-    public static GameManager Instance;
-
     public bool IsInitialized { get; set; }
     public int CurrentScore { get; set; }
 
@@ -23,19 +21,6 @@ public class GameManager : MonoBehaviour
         // Debug.Log("GameManager Initialized");
         CurrentScore = 0;
         IsInitialized = false;
-    }
-
-    private void Awake() 
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            Init();
-            return;
-        }
-        else
-            Destroy(gameObject);
     }
 
     public void GoToMainMenu()

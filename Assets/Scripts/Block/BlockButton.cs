@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Block : MonoBehaviour
+public class BlockButton : MonoBehaviour
 {
     public int ColorId;
 

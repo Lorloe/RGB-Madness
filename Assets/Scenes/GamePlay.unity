@@ -150,6 +150,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BlockButton_4
       objectReference: {fileID: 0}
+    - target: {fileID: 4110516792900445330, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
+      propertyPath: ColorId
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5020252868548085507, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -255,6 +259,10 @@ PrefabInstance:
     - target: {fileID: 2086831731820311521, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Name
       value: BlockButton_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110516792900445330, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
+      propertyPath: ColorId
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5020252868548085507, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Pivot.x
@@ -380,11 +388,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9af4247db577b741b1779adda31db99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _colorList: {fileID: 11400000, guid: 642d37dc8df6a4046b2bfdf6fbf67851, type: 2}
   _scoreText: {fileID: 1476606659}
   _pointClip: {fileID: 8300000, guid: 034ac7b2b2f1a6c4a914a63d4b59850e, type: 3}
+  _colorList: {fileID: 11400000, guid: 642d37dc8df6a4046b2bfdf6fbf67851, type: 2}
   _spawnTime: 1
   _floatingBlockPrefab: {fileID: 8656214559094817291, guid: 1c5323c0df777e949a6aa7df1cac84ea, type: 3}
+  _blockEffect: {fileID: 8280443795164874080, guid: 32eaae3fd6ccc8f4b96639d421a86468, type: 3}
   _gameOverClip: {fileID: 8300000, guid: c12a2ff48b77054498322c209ae085a7, type: 3}
 --- !u!4 &741372199
 Transform:
@@ -428,6 +437,10 @@ PrefabInstance:
     - target: {fileID: 2086831731820311521, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Name
       value: BlockButton_6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110516792900445330, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
+      propertyPath: ColorId
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5020252868548085507, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Pivot.x
@@ -864,6 +877,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BlockButton_2
       objectReference: {fileID: 0}
+    - target: {fileID: 4110516792900445330, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
+      propertyPath: ColorId
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5020252868548085507, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1297,6 +1314,10 @@ PrefabInstance:
     - target: {fileID: 2086831731820311521, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Name
       value: BlockButton_5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110516792900445330, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
+      propertyPath: ColorId
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5020252868548085507, guid: 390e6a5f7e57fab44a0382e11e737238, type: 3}
       propertyPath: m_Pivot.x
