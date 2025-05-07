@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 457043345108117654}
   - component: {fileID: 2184108721572893264}
   - component: {fileID: 3657189091513231877}
-  - component: {fileID: -9130006346258166722}
+  - component: {fileID: 4110516792900445330}
   m_Layer: 5
   m_Name: BlockButton
   m_TagString: Untagged
@@ -143,7 +143,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 120, y: 100}
   m_EdgeRadius: 0
---- !u!114 &-9130006346258166722
+--- !u!114 &4110516792900445330
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -155,3 +155,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2317742367ba82e4cb68aaab27616afe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ColorId: 0
