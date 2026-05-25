@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 public class GameplayManager : MonoBehaviour
 {
+    private static readonly string[] GameplayLaneActionNames = { "A", "S", "D", "J", "K", "L" };
+
     #region VARIABLES
 
     [SerializeField] private TMP_Text _scoreText;
@@ -36,6 +39,8 @@ public class GameplayManager : MonoBehaviour
 
     private FloatingBlock _currentBlock;
     private FloatingBlock _activeHoldBlock;
+    private readonly InputAction[] _laneActions = new InputAction[6];
+    private InputActionMap _playerActionMap;
 
     private float _score;
     private float _elapsedGameplayTime;
@@ -95,9 +100,48 @@ public class GameplayManager : MonoBehaviour
         _displayedDifficultyLevel = 0;
         _normalBlocksBeforeNextLongAllowed = GetRandomLongBlockSpacing();
 
+        InitializeInputActions();
         UpdateScoreText();
         UpdateDifficultyText(true);
         StartCoroutine(SpawnBlock());
+    }
+
+    private void OnEnable()
+    {
+        _playerActionMap?.Enable();
+    }
+
+    private void OnDisable()
+    {
+        _playerActionMap?.Disable();
+    }
+
+    private void InitializeInputActions()
+    {
+        InputActionAsset projectWideActions = InputSystem.actions;
+        if (projectWideActions == null)
+        {
+            Debug.LogError("Project-wide Input System actions are not configured.");
+            return;
+        }
+
+        _playerActionMap = projectWideActions.FindActionMap("Player", false);
+        if (_playerActionMap == null)
+        {
+            Debug.LogError("Input action map 'Player' was not found in project-wide actions.");
+            return;
+        }
+
+        for (int i = 0; i < GameplayLaneActionNames.Length; i++)
+        {
+            _laneActions[i] = _playerActionMap.FindAction(GameplayLaneActionNames[i], false);
+            if (_laneActions[i] == null)
+            {
+                Debug.LogError($"Input action '{GameplayLaneActionNames[i]}' was not found in map 'Player'.");
+            }
+        }
+
+        _playerActionMap.Enable();
     }
 
     #endregion
@@ -243,13 +287,14 @@ public class GameplayManager : MonoBehaviour
             return;
         }
 
-        if (Input.GetMouseButtonDown(0))
+        // Old touch/raycast input was replaced by project-wide Input System actions.
+        if (TryGetPressedLane(out int laneIndex))
         {
-            HandlePressStarted();
+            HandlePressStarted(laneIndex);
         }
     }
 
-    private void HandlePressStarted()
+    private void HandlePressStarted(int laneIndex)
     {
         if (_currentBlock == null)
         {
@@ -257,13 +302,7 @@ public class GameplayManager : MonoBehaviour
             return;
         }
 
-        if (!TryGetHoveredButton(out BlockButton hoveredButton))
-        {
-            TriggerGameOver();
-            return;
-        }
-
-        if (hoveredButton.ColorId != _currentBlock.ColorId)
+        if (laneIndex != _currentBlock.ColorId)
         {
             TriggerGameOver();
             return;
@@ -289,20 +328,28 @@ public class GameplayManager : MonoBehaviour
             return;
         }
 
-        if (Input.GetMouseButtonUp(0))
+        int expectedLaneIndex = _activeHoldBlock.ColorId;
+        if (expectedLaneIndex < 0 || expectedLaneIndex >= _laneActions.Length)
         {
             TriggerGameOver();
             return;
         }
 
-        if (!Input.GetMouseButton(0))
+        if (WasWrongLanePressed(expectedLaneIndex))
         {
+            TriggerGameOver();
             return;
         }
 
-        if (!TryGetHoveredButton(out BlockButton hoveredButton) || hoveredButton.ColorId != _activeHoldBlock.ColorId)
+        InputAction expectedLaneAction = _laneActions[expectedLaneIndex];
+        if (expectedLaneAction == null || expectedLaneAction.WasReleasedThisFrame())
         {
             TriggerGameOver();
+            return;
+        }
+
+        if (!expectedLaneAction.IsPressed())
+        {
             return;
         }
 
@@ -315,25 +362,39 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
-    private bool TryGetHoveredButton(out BlockButton blockButton)
+    private bool TryGetPressedLane(out int laneIndex)
     {
-        blockButton = null;
-
-        if (Camera.main == null)
+        for (int i = 0; i < _laneActions.Length; i++)
         {
-            return false;
+            InputAction laneAction = _laneActions[i];
+            if (laneAction != null && laneAction.WasPressedThisFrame())
+            {
+                laneIndex = i;
+                return true;
+            }
         }
 
-        Vector3 pointerPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 pointerPosition2D = new Vector2(pointerPosition.x, pointerPosition.y);
-        RaycastHit2D hit = Physics2D.Raycast(pointerPosition2D, Vector2.zero);
+        laneIndex = -1;
+        return false;
+    }
 
-        if (!hit.collider || hit.collider.CompareTag("Obstacle"))
+    private bool WasWrongLanePressed(int expectedLaneIndex)
+    {
+        for (int i = 0; i < _laneActions.Length; i++)
         {
-            return false;
+            if (i == expectedLaneIndex)
+            {
+                continue;
+            }
+
+            InputAction laneAction = _laneActions[i];
+            if (laneAction != null && laneAction.WasPressedThisFrame())
+            {
+                return true;
+            }
         }
 
-        return hit.collider.TryGetComponent(out blockButton);
+        return false;
     }
 
     private void ResetHoldState()

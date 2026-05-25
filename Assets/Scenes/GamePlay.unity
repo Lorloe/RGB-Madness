@@ -559,6 +559,14 @@ MonoBehaviour:
   _maxBlockSpeedMultiplier: 2.2
   _spawnTimeReductionPerSecond: 0.012
   _minSpawnTime: 0.35
+  _minLongBlockChance: 0.12
+  _maxLongBlockChance: 0.24
+  _minNormalBlocksBetweenLong: 2
+  _maxNormalBlocksBetweenLong: 4
+  _longBlockMinHoldDuration: 0.45
+  _longBlockMaxHoldDuration: 0.95
+  _longBlockMinLengthMultiplier: 1.7
+  _longBlockMaxLengthMultiplier: 2.5
   _floatingBlockPrefab: {fileID: 8656214559094817291, guid: 1c5323c0df777e949a6aa7df1cac84ea, type: 3}
   _blockEffect: {fileID: 8280443795164874080, guid: 32eaae3fd6ccc8f4b96639d421a86468, type: 3}
   _gameOverClip: {fileID: 8300000, guid: c12a2ff48b77054498322c209ae085a7, type: 3}
@@ -1228,7 +1236,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 1
-  m_Size: {x: 33, y: 0.42}
+  m_Size: {x: 100, y: 0.42}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1272,7 +1280,7 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 0.01, y: 0.01}
-    newSize: {x: 33, y: 0.42}
+    newSize: {x: 100, y: 0.42}
     adaptiveTilingThreshold: 0.5
     drawMode: 1
     adaptiveTiling: 0
