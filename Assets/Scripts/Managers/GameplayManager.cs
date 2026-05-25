@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
-public class GameplayManager : MonoBehaviour
+public partial class GameplayManager : MonoBehaviour
 {
     private static readonly string[] GameplayLaneActionNames = { "A", "S", "D", "J", "K", "L" };
 
@@ -47,7 +47,7 @@ public class GameplayManager : MonoBehaviour
     private float _currentHoldTime;
     private bool _hasGameFinished;
     private bool _isHoldingLongBlock;
-    private int _displayedDifficultyLevel;
+    private string _displayedStatusText = string.Empty;
     private int _normalBlocksBeforeNextLongAllowed;
 
     public List<Color> Colors => _colorList.Colors;
@@ -97,12 +97,12 @@ public class GameplayManager : MonoBehaviour
         _score = 0f;
         _elapsedGameplayTime = 0f;
         _currentHoldTime = 0f;
-        _displayedDifficultyLevel = 0;
         _normalBlocksBeforeNextLongAllowed = GetRandomLongBlockSpacing();
 
+        InitializeTapConnect();
         InitializeInputActions();
         UpdateScoreText();
-        UpdateDifficultyText(true);
+        UpdateStatusText(true);
         StartCoroutine(SpawnBlock());
     }
 
@@ -156,21 +156,24 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
-    private void UpdateDifficultyText(bool force = false)
+    private void UpdateStatusText(bool force = false)
     {
         if (_difficultyText == null)
         {
             return;
         }
 
-        int currentDifficultyLevel = CurrentDifficultyLevel;
-        if (!force && currentDifficultyLevel == _displayedDifficultyLevel)
+        string statusText = IsTapConnectActive
+            ? TapConnectLabel
+            : $"LEVEL {CurrentDifficultyLevel}";
+
+        if (!force && statusText == _displayedStatusText)
         {
             return;
         }
 
-        _displayedDifficultyLevel = currentDifficultyLevel;
-        _difficultyText.text = $"LEVEL {currentDifficultyLevel}";
+        _displayedStatusText = statusText;
+        _difficultyText.text = statusText;
     }
 
     #endregion
@@ -213,6 +216,12 @@ public class GameplayManager : MonoBehaviour
 
     private void ConfigureSpawnedBlock(FloatingBlock block)
     {
+        if (ShouldForceShortBlocks)
+        {
+            block.InitializeLongBlock(false, 0f, 1f);
+            return;
+        }
+
         if (_normalBlocksBeforeNextLongAllowed > 0)
         {
             _normalBlocksBeforeNextLongAllowed--;
@@ -265,6 +274,8 @@ public class GameplayManager : MonoBehaviour
 
         Destroy(clearedBlock.gameObject);
         IncreaseScore();
+        NotifyTapConnectBlockResolved();
+        UpdateStatusText(true);
     }
 
     #endregion
@@ -279,11 +290,16 @@ public class GameplayManager : MonoBehaviour
         }
 
         _elapsedGameplayTime += Time.deltaTime;
-        UpdateDifficultyText();
+        UpdateStatusText();
 
         if (_isHoldingLongBlock)
         {
             HandleLongBlockHold();
+            return;
+        }
+
+        if (IsTapConnectActive)
+        {
             return;
         }
 
@@ -421,6 +437,7 @@ public class GameplayManager : MonoBehaviour
         }
 
         ResetHoldState();
+        ResetTapConnectState();
         GameOver?.Invoke();
         SoundManager.Instance.PlaySound(_gameOverClip);
         _hasGameFinished = true;

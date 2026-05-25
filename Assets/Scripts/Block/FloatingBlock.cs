@@ -81,6 +81,14 @@ public class FloatingBlock : MonoBehaviour
         }
     }
 
+    private void OnMouseDown()
+    {
+        if (GameplayManager.Instance != null)
+        {
+            GameplayManager.Instance.HandleTapConnectClick(this);
+        }
+    }
+
     private void OnEnable()
     {
         GameplayManager.Instance.GameOver += GameOver;
