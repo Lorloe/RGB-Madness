@@ -18,6 +18,14 @@ public class GameplayManager : MonoBehaviour
     [SerializeField] private float _maxBlockSpeedMultiplier = 2.2f;
     [SerializeField] private float _spawnTimeReductionPerSecond = 0.012f;
     [SerializeField] private float _minSpawnTime = 0.35f;
+    [SerializeField] private float _minLongBlockChance = 0.12f;
+    [SerializeField] private float _maxLongBlockChance = 0.24f;
+    [SerializeField] private int _minNormalBlocksBetweenLong = 2;
+    [SerializeField] private int _maxNormalBlocksBetweenLong = 4;
+    [SerializeField] private float _longBlockMinHoldDuration = 0.45f;
+    [SerializeField] private float _longBlockMaxHoldDuration = 0.95f;
+    [SerializeField] private float _longBlockMinLengthMultiplier = 1.7f;
+    [SerializeField] private float _longBlockMaxLengthMultiplier = 2.5f;
     [SerializeField] private FloatingBlock _floatingBlockPrefab;
     [SerializeField] private BlockEffect _blockEffect;
     [SerializeField] private AudioClip _gameOverClip;
@@ -27,11 +35,15 @@ public class GameplayManager : MonoBehaviour
     public UnityAction GameOver;
 
     private FloatingBlock _currentBlock;
+    private FloatingBlock _activeHoldBlock;
 
     private float _score;
     private float _elapsedGameplayTime;
+    private float _currentHoldTime;
     private bool _hasGameFinished;
+    private bool _isHoldingLongBlock;
     private int _displayedDifficultyLevel;
+    private int _normalBlocksBeforeNextLongAllowed;
 
     public List<Color> Colors => _colorList.Colors;
 
@@ -74,31 +86,18 @@ public class GameplayManager : MonoBehaviour
     {
         Instance = this;
         _hasGameFinished = false;
+        _isHoldingLongBlock = false;
         GameManager.Instance.IsInitialized = true;
 
         _score = 0f;
         _elapsedGameplayTime = 0f;
+        _currentHoldTime = 0f;
         _displayedDifficultyLevel = 0;
+        _normalBlocksBeforeNextLongAllowed = GetRandomLongBlockSpacing();
 
-        ResolveDifficultyText();
         UpdateScoreText();
         UpdateDifficultyText(true);
-
         StartCoroutine(SpawnBlock());
-    }
-
-    private void ResolveDifficultyText()
-    {
-        if (_difficultyText != null)
-        {
-            return;
-        }
-
-        GameObject levelTextObject = GameObject.Find("LevelText");
-        if (levelTextObject != null)
-        {
-            _difficultyText = levelTextObject.GetComponent<TMP_Text>();
-        }
     }
 
     #endregion
@@ -151,6 +150,7 @@ public class GameplayManager : MonoBehaviour
         while (!_hasGameFinished)
         {
             FloatingBlock tempBlock = Instantiate(_floatingBlockPrefab, transform.position, Quaternion.identity);
+            ConfigureSpawnedBlock(tempBlock);
 
             if (prevBlock == null)
             {
@@ -167,57 +167,185 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
+    private void ConfigureSpawnedBlock(FloatingBlock block)
+    {
+        if (_normalBlocksBeforeNextLongAllowed > 0)
+        {
+            _normalBlocksBeforeNextLongAllowed--;
+            block.InitializeLongBlock(false, 0f, 1f);
+            return;
+        }
+
+        float longBlockChance = Random.Range(
+            Mathf.Clamp01(Mathf.Min(_minLongBlockChance, _maxLongBlockChance)),
+            Mathf.Clamp01(Mathf.Max(_minLongBlockChance, _maxLongBlockChance)));
+
+        if (Random.value > longBlockChance)
+        {
+            block.InitializeLongBlock(false, 0f, 1f);
+            return;
+        }
+
+        float holdT = Random.value;
+        float holdDuration = Mathf.Lerp(_longBlockMinHoldDuration, _longBlockMaxHoldDuration, holdT);
+        float lengthMultiplier = Mathf.Lerp(_longBlockMinLengthMultiplier, _longBlockMaxLengthMultiplier, holdT);
+        block.InitializeLongBlock(true, holdDuration, lengthMultiplier);
+        _normalBlocksBeforeNextLongAllowed = GetRandomLongBlockSpacing();
+    }
+
+    private int GetRandomLongBlockSpacing()
+    {
+        int minSpacing = Mathf.Max(0, Mathf.Min(_minNormalBlocksBetweenLong, _maxNormalBlocksBetweenLong));
+        int maxSpacing = Mathf.Max(minSpacing, Mathf.Max(_minNormalBlocksBetweenLong, _maxNormalBlocksBetweenLong));
+        return Random.Range(minSpacing, maxSpacing + 1);
+    }
+
+    private void ResolveCurrentBlock()
+    {
+        if (_currentBlock == null)
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        BlockEffect effect = Instantiate(_blockEffect, _currentBlock.transform.position, Quaternion.identity);
+        effect.Initialize(Colors[_currentBlock.ColorId]);
+
+        FloatingBlock clearedBlock = _currentBlock;
+        _currentBlock = _currentBlock.NextBlock;
+
+        if (_activeHoldBlock == clearedBlock)
+        {
+            ResetHoldState();
+        }
+
+        Destroy(clearedBlock.gameObject);
+        IncreaseScore();
+    }
+
     #endregion
 
-    #region GAME_LOGIC
+    #region INPUT
 
     private void Update()
     {
-        if (!_hasGameFinished)
+        if (_hasGameFinished)
         {
-            _elapsedGameplayTime += Time.deltaTime;
-            UpdateDifficultyText();
+            return;
         }
 
-        if (Input.GetMouseButtonDown(0) && !_hasGameFinished)
+        _elapsedGameplayTime += Time.deltaTime;
+        UpdateDifficultyText();
+
+        if (_isHoldingLongBlock)
         {
-            if (_currentBlock == null)
-            {
-                TriggerGameOver();
-                return;
-            }
-
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
-
-            if (!hit.collider || hit.collider.CompareTag("Obstacle"))
-            {
-                TriggerGameOver();
-                return;
-            }
-
-            int currentBlockId = _currentBlock.ColorId;
-            int clickedBlockId = hit.collider.gameObject.GetComponent<BlockButton>().ColorId;
-
-            if (currentBlockId != clickedBlockId)
-            {
-                TriggerGameOver();
-                return;
-            }
-
-            BlockEffect effect = Instantiate(_blockEffect, _currentBlock.transform.position, Quaternion.identity);
-            effect.Initialize(Colors[currentBlockId]);
-
-            FloatingBlock tempBlock = _currentBlock;
-            if (_currentBlock.NextBlock != null)
-            {
-                _currentBlock = _currentBlock.NextBlock;
-            }
-
-            Destroy(tempBlock.gameObject);
-            IncreaseScore();
+            HandleLongBlockHold();
+            return;
         }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            HandlePressStarted();
+        }
+    }
+
+    private void HandlePressStarted()
+    {
+        if (_currentBlock == null)
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        if (!TryGetHoveredButton(out BlockButton hoveredButton))
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        if (hoveredButton.ColorId != _currentBlock.ColorId)
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        if (!_currentBlock.IsLongBlock)
+        {
+            ResolveCurrentBlock();
+            return;
+        }
+
+        _isHoldingLongBlock = true;
+        _activeHoldBlock = _currentBlock;
+        _currentHoldTime = 0f;
+        _activeHoldBlock.UpdateHoldProgress(0f);
+    }
+
+    private void HandleLongBlockHold()
+    {
+        if (_activeHoldBlock == null || _activeHoldBlock != _currentBlock)
+        {
+            ResetHoldState();
+            return;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        if (!Input.GetMouseButton(0))
+        {
+            return;
+        }
+
+        if (!TryGetHoveredButton(out BlockButton hoveredButton) || hoveredButton.ColorId != _activeHoldBlock.ColorId)
+        {
+            TriggerGameOver();
+            return;
+        }
+
+        _currentHoldTime += Time.deltaTime;
+        _activeHoldBlock.UpdateHoldProgress(_currentHoldTime / _activeHoldBlock.RequiredHoldDuration);
+
+        if (_currentHoldTime >= _activeHoldBlock.RequiredHoldDuration)
+        {
+            ResolveCurrentBlock();
+        }
+    }
+
+    private bool TryGetHoveredButton(out BlockButton blockButton)
+    {
+        blockButton = null;
+
+        if (Camera.main == null)
+        {
+            return false;
+        }
+
+        Vector3 pointerPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 pointerPosition2D = new Vector2(pointerPosition.x, pointerPosition.y);
+        RaycastHit2D hit = Physics2D.Raycast(pointerPosition2D, Vector2.zero);
+
+        if (!hit.collider || hit.collider.CompareTag("Obstacle"))
+        {
+            return false;
+        }
+
+        return hit.collider.TryGetComponent(out blockButton);
+    }
+
+    private void ResetHoldState()
+    {
+        if (_activeHoldBlock != null)
+        {
+            _activeHoldBlock.UpdateHoldProgress(0f);
+        }
+
+        _isHoldingLongBlock = false;
+        _activeHoldBlock = null;
+        _currentHoldTime = 0f;
     }
 
     #endregion
@@ -226,6 +354,12 @@ public class GameplayManager : MonoBehaviour
 
     public void TriggerGameOver()
     {
+        if (_hasGameFinished)
+        {
+            return;
+        }
+
+        ResetHoldState();
         GameOver?.Invoke();
         SoundManager.Instance.PlaySound(_gameOverClip);
         _hasGameFinished = true;
