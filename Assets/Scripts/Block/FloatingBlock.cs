@@ -28,7 +28,7 @@ public class FloatingBlock : MonoBehaviour
     private void FixedUpdate() 
     {
         if (_hasGameFinished) return;
-        transform.Translate(_moveSpeed * Time.fixedDeltaTime * Vector3.down);    
+        transform.Translate(_moveSpeed * GameplayManager.Instance.CurrentBlockSpeedMultiplier * Time.fixedDeltaTime * Vector3.down);    
     }
 
     private void OnTriggerEnter2D(Collider2D other) 
@@ -46,7 +46,10 @@ public class FloatingBlock : MonoBehaviour
 
     private void OnDisable() 
     {
-        GameplayManager.Instance.GameOver -= GameOver; // public UnityAction GameOver trong GameplayManager.cs;
+        if (GameplayManager.Instance != null)
+        {
+            GameplayManager.Instance.GameOver -= GameOver; // public UnityAction GameOver trong GameplayManager.cs;
+        }
     }
 
     private void GameOver()

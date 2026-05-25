@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "RGB Madness.sln"
+    "dotnet.defaultSolution": "RGB-Madness.slnx"
 }
